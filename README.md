@@ -21,6 +21,27 @@ The following architectures are provided out of the box. If yours is not in here
     >Note: If you use a Raspberry Pi model 0, 1 or 2 or run your Pi 3 with a 32-Bit OS you should download the `armhf` edition.
     For the Raspberry Pi model 4b+ you should use `arm64`
 3. Add your user to the `dialout` group: `usermod -aG dialout <username>`
+4. Create a systemd service by pasting the following snipping into `/etc/systemd/system/prometheus-p1-exporter.service`
+```
+[Unit]
+Description=Prometheus P1 Exporter
+
+[Service]
+ExecStart=/usr/local/bin/prometheus-p1-exporter
+
+[Install]
+WantedBy=multi-user.target
+```
+>Note: This assumes you've placed the binary in `/usr/local/bin` and have named it `prometheus-p1-exporter`
+5. Start the exporter
+```
+systemctl daemon reload && systemctl enable --now prometheus-p1-exporter
+```
+
+### Startup flags
+`-p`: Set the port to listen on. Default: `9832`  
+`-t`: Set the TTY device to use. Default: `/dev/ttyUSB0`  
+`-i`: The interval in which to read from the TTY device in miliseconds. Default: `500`  
 
 ## Metrics
 | Name                                       | Unit | Description                                                             |
