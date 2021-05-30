@@ -54,7 +54,7 @@ systemctl daemon reload && systemctl enable --now prometheus-p1-exporter
 | electricity_received_from_client_tariff_2  | kWh  | Meter Reading electricity delivered from client (Tariff 2) in 0,001 kWh |
 
 ## Roadmap
-- [] Add support for Gas meter readings
+- [ ] Add support for Gas meter readings
 
 ## Developing
 You need the [Rust toolchain](https://www.rust-lang.org/learn/get-started), should be easy from there.
