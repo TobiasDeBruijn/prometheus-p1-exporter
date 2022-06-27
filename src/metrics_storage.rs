@@ -15,6 +15,7 @@ pub fn storage_listener(rx: Receiver<PortData>) {
         let gauge_e_delivered_from_t2 = Gauge::new("electricity_received_from_client_tariff_2", "Meter Reading electricity delivered from client (Tariff 1) in 0,001 kWh").unwrap();
         let gauge_actual_e_delivered = Gauge::new("actual_electricity_delivered_to_client", "Actual electricity power delivered (+P) in 1 Watt resolution").unwrap();
         let gauge_actual_e_received = Gauge::new("actual_electricity_received_from_client", "Actual electricity power received (-P) in 1 Watt resolution").unwrap();
+        let gauge_gas_meter_reading = Gauge::new("gas_meter_reading", "Last 5 minute meter reading in 0.001 m^3").unwrap();
 
         {
             let guard = METRICS_PROM.lock().expect("Failed to lock prometheus metrics storage");
@@ -24,6 +25,7 @@ pub fn storage_listener(rx: Receiver<PortData>) {
             guard.register(Box::new(gauge_e_delivered_from_t2.clone())).unwrap();
             guard.register(Box::new(gauge_actual_e_delivered.clone())).unwrap();
             guard.register(Box::new(gauge_actual_e_received.clone())).unwrap();
+            guard.register(Box::new(gauge_gas_meter_reading.clone())).unwrap();
         }
 
         loop {
@@ -40,6 +42,7 @@ pub fn storage_listener(rx: Receiver<PortData>) {
             gauge_e_delivered_from_t2.set(recv.e_delivered_from_t2);
             gauge_actual_e_delivered.set(recv.actual_e_delivered);
             gauge_actual_e_received.set(recv.actual_e_received);
+            gauge_gas_meter_reading.set(recv.gas_meter_reading);
         }
     });
 }

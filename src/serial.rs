@@ -23,7 +23,10 @@ pub struct PortData {
     pub actual_e_delivered: f64,
 
     ///Actual electricity power received (-P) in 1 Watt resolution
-    pub actual_e_received: f64
+    pub actual_e_received: f64,
+
+    /// Last 5 minute meter reading, in 0.001 m^3 resolution
+    pub gas_meter_reading: f64,
 }
 
 impl Default for PortData {
@@ -35,7 +38,8 @@ impl Default for PortData {
             e_delivered_to_t1: 0f64,
             e_delivered_to_t2: 0f64,
             actual_e_delivered: 0f64,
-            actual_e_received: 0f64
+            actual_e_received: 0f64,
+            gas_meter_reading: 0f64,
         }
     }
 }
@@ -44,7 +48,7 @@ pub fn read_port(tx: Sender<PortData>, scrape_interval: u64, tty: &str) {
     let mut port = serialport::new(tty, 115_200)
         .timeout(std::time::Duration::from_millis(500))
         .open()
-        .expect("Failed to open serial port /dev/ttyUSB0.");
+        .expect("Failed to open serial port {tty}");
 
     let data_line_regex = Regex::new(r#"\d-\d"#).unwrap();
     let e_delivered_to_t1_regex = Regex::new(r#"(1-0:1\.8\.1)\((.*)\*kWh\)"#).unwrap();
@@ -53,6 +57,7 @@ pub fn read_port(tx: Sender<PortData>, scrape_interval: u64, tty: &str) {
     let e_delivered_from_t2_regex = Regex::new(r#"(1-0:2\.8\.2)\((.*)\*kWh\)"#).unwrap();
     let actual_e_delivered = Regex::new(r#"(1-0:1\.7\.0)\((.*)\*kW\)"#).unwrap();
     let actual_e_received =  Regex::new(r#"(1-0:2\.7\.0)\((.*)\*kW\)"#).unwrap();
+    let gas_meter_reading = Regex::new(r#"0-1:24\.2\.1\(.*\)\((.*)\*m3\)"#).unwrap();
 
     std::thread::spawn(move || {
         loop {
@@ -105,6 +110,14 @@ pub fn read_port(tx: Sender<PortData>, scrape_interval: u64, tty: &str) {
                 if let Some(v) = check_line(line, &actual_e_received) {
                     portdata.actual_e_received = v;
                     portdata.set = true;
+                }
+
+                if gas_meter_reading.is_match(line) {
+                    if let Some(v) = gas_meter_reading.captures(line).unwrap().get(1) {
+                        let value = v.as_str().parse::<f64>().expect(&format!("Failed to parse line: {}", line));
+                        portdata.gas_meter_reading = value;
+                        portdata.set = true;
+                    }
                 }
             }
 

@@ -1,4 +1,4 @@
-use actix_web::{HttpResponse, get};
+use actix_web::HttpResponse;
 use crate::metrics_storage::METRICS_PROM;
 use prometheus::{TextEncoder, Encoder};
 
@@ -6,7 +6,6 @@ lazy_static! {
     static ref ENCODER: TextEncoder = TextEncoder::new();
 }
 
-#[get("/metrics")]
 pub async fn metrics() -> HttpResponse {
     let guard = METRICS_PROM.lock().unwrap();
     let families = guard.gather();
